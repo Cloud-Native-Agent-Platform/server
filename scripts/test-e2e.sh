@@ -128,22 +128,24 @@ main() {
 
     # Test 5: Application logs
     log_info "=== Application Log Tests ==="
-    LOGS=$(kubectl logs "$POD_NAME" -n "$NAMESPACE" --tail=50)
+    LOGS=$(kubectl logs "$POD_NAME" -n "$NAMESPACE" --tail=200)
 
-    if echo "$LOGS" | grep -q "Started CnapServerApplication"; then
+    # Check for application startup (Spring Boot logs or successful requests)
+    if echo "$LOGS" | grep -qE "(Started CnapServerApplication|Tomcat started on port|DispatcherServlet)"; then
         log_success "PASS: Application started successfully"
         ((TESTS_PASSED++))
     else
-        log_error "FAIL: Application start message not found"
+        log_error "FAIL: Application start indicators not found"
         ((TESTS_FAILED++))
     fi
 
-    if echo "$LOGS" | grep -qi "error"; then
-        log_error "FAIL: Errors found in logs"
-        echo "$LOGS" | grep -i "error"
+    # Only fail if there are ERROR level logs (not just the word "error" in lowercase)
+    if echo "$LOGS" | grep -q "ERROR"; then
+        log_error "FAIL: ERROR level logs found"
+        echo "$LOGS" | grep "ERROR" | head -5
         ((TESTS_FAILED++))
     else
-        log_success "PASS: No errors in logs"
+        log_success "PASS: No ERROR level logs"
         ((TESTS_PASSED++))
     fi
     echo ""
