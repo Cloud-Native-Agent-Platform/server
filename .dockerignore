@@ -1,8 +1,8 @@
 # Build artifacts
-build/
 .gradle/
-*.jar
 *.war
+# Allow JAR files in build/libs for Docker image
+!build/libs/*.jar
 
 # IDE
 .idea/
