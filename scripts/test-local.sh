@@ -8,8 +8,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration
-IMAGE_NAME="localhost:5000/cnap-server"
+# Detect OS
+OS="$(uname -s)"
+case "${OS}" in
+    Linux*)     MACHINE=Linux;;
+    Darwin*)    MACHINE=Mac;;
+    *)          MACHINE="UNKNOWN:${OS}"
+esac
+
+# Configuration - adjust registry port based on OS
+if [ "$MACHINE" = "Mac" ]; then
+    REGISTRY_PORT="5001"
+else
+    REGISTRY_PORT="5000"
+fi
+
+IMAGE_NAME="localhost:${REGISTRY_PORT}/cnap-server"
 IMAGE_TAG="dev"
 NAMESPACE="cnap-dev"
 DEPLOYMENT_NAME="cnap-server"
@@ -65,44 +79,79 @@ main() {
     log_info "Step 1/7: Checking prerequisites..."
     check_command "docker"
     check_command "kubectl"
-    check_command "k3s" || log_warning "k3s not found. Run ./scripts/setup-k3s.sh first"
+
+    if [ "$MACHINE" = "Mac" ]; then
+        check_command "k3d" || {
+            log_error "k3d not found. Run ./scripts/setup-k3s.sh first"
+            exit 1
+        }
+    else
+        check_command "k3s" || {
+            log_warning "k3s not found. Run ./scripts/setup-k3s.sh first"
+            exit 1
+        }
+    fi
     log_success "Prerequisites checked"
     echo ""
 
-    # Step 2: Check k3s status
-    log_info "Step 2/7: Checking k3s status..."
-    if sudo systemctl is-active --quiet k3s 2>/dev/null || pgrep -x "k3s" > /dev/null; then
-        log_success "k3s is running"
-    else
-        log_error "k3s is not running. Starting k3s..."
-        if [ -f "/usr/local/bin/k3s" ]; then
-            sudo systemctl start k3s 2>/dev/null || {
-                log_error "Failed to start k3s"
-                exit 1
-            }
-            sleep 5
+    # Step 2: Check k3s/k3d status
+    log_info "Step 2/7: Checking cluster status..."
+
+    if [ "$MACHINE" = "Mac" ]; then
+        # Check k3d cluster
+        if k3d cluster list | grep -q "cnap-dev" && docker ps | grep -q "k3d-cnap-dev-server"; then
+            log_success "k3d cluster 'cnap-dev' is running"
         else
-            log_error "k3s is not installed. Run ./scripts/setup-k3s.sh"
-            exit 1
+            if k3d cluster list | grep -q "cnap-dev"; then
+                log_info "Starting k3d cluster..."
+                k3d cluster start cnap-dev
+                sleep 5
+            else
+                log_error "k3d cluster 'cnap-dev' not found. Run ./scripts/setup-k3s.sh"
+                exit 1
+            fi
+        fi
+    else
+        # Check native k3s
+        if sudo systemctl is-active --quiet k3s 2>/dev/null || pgrep -x "k3s" > /dev/null; then
+            log_success "k3s is running"
+        else
+            log_error "k3s is not running. Starting k3s..."
+            if [ -f "/usr/local/bin/k3s" ]; then
+                sudo systemctl start k3s 2>/dev/null || {
+                    log_error "Failed to start k3s"
+                    exit 1
+                }
+                sleep 5
+            else
+                log_error "k3s is not installed. Run ./scripts/setup-k3s.sh"
+                exit 1
+            fi
         fi
     fi
 
     kubectl get nodes >/dev/null 2>&1 || {
-        log_error "Cannot connect to k3s cluster"
+        log_error "Cannot connect to cluster"
         exit 1
     }
-    log_success "k3s cluster is accessible"
+    log_success "Cluster is accessible"
     echo ""
 
     # Step 3: Check local registry
     log_info "Step 3/7: Checking local registry..."
-    if docker ps | grep -q "registry:2"; then
-        log_success "Local registry is running at localhost:5000"
+    if docker ps | grep -q "cnap-registry"; then
+        log_success "Local registry is running at localhost:${REGISTRY_PORT}"
     else
-        log_warning "Local registry not found. Starting..."
-        docker run -d --restart=always -p 5000:5000 --name registry registry:2
-        sleep 3
-        log_success "Local registry started"
+        if [ "$MACHINE" = "Mac" ]; then
+            log_error "Local registry not found. k3d cluster should include it."
+            log_info "Please recreate the cluster: ./scripts/setup-k3s.sh"
+            exit 1
+        else
+            log_warning "Local registry not found. Starting..."
+            docker run -d --restart=always -p ${REGISTRY_PORT}:5000 --name cnap-registry registry:2
+            sleep 3
+            log_success "Local registry started at localhost:${REGISTRY_PORT}"
+        fi
     fi
     echo ""
 
