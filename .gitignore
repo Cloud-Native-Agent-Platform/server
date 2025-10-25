@@ -1,0 +1,55 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Spring Boot
+*.jar
+*.war
+*.ear
+*.class
+
+# Logs
+*.log
+logs/
+spring.log
+
+# Test
+out/
+.pytest_cache/
+coverage/
+
+# Environment
+.env
+.env.local
+*.env
+
+# Kubernetes
+*-secret.yaml
+kubeconfig
+
+# Docker
+docker-compose.override.yml
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib

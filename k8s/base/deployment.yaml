@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cnap-server
+  namespace: cnap-dev
+  labels:
+    app.kubernetes.io/name: cnap-server
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: cnap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cnap-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cnap-server
+        app.kubernetes.io/component: server
+    spec:
+      serviceAccountName: cnap-server
+      containers:
+        - name: cnap-server
+          image: cnap-server:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "default"
+            - name: CNAP_K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: CNAP_STREAM_MODE
+              value: "sse"
+            - name: CNAP_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cnap-server-secret
+                  key: auth-token
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 12

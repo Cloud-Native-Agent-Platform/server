@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: cnap-server
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+cnap:
+  kubernetes:
+    namespace: ${CNAP_K8S_NAMESPACE:default}
+  stream:
+    mode: ${CNAP_STREAM_MODE:sse}
+  auth:
+    token: ${CNAP_AUTH_TOKEN:dev-token}
+
+logging:
+  level:
+    root: INFO
+    com.cnap: DEBUG

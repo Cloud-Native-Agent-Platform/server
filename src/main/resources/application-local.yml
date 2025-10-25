@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: cnap-server-local
+
+cnap:
+  kubernetes:
+    namespace: cnap-dev
+  stream:
+    mode: sse
+  auth:
+    token: local-dev-token
+
+logging:
+  level:
+    root: DEBUG
+    com.cnap: TRACE

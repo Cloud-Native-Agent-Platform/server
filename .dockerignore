@@ -1,0 +1,32 @@
+# Build artifacts
+build/
+.gradle/
+*.jar
+*.war
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Version control
+.git/
+.gitignore
+
+# Kubernetes
+k8s/
+*.yaml
+*.yml
+
+# Documentation
+README.md
+docs/
+
+# CI/CD
+.github/
+
+# Misc
+*.log
+.DS_Store
