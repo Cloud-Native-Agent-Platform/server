@@ -43,14 +43,14 @@ if [ "$MACHINE" = "Mac" ]; then
         echo "🚀 Creating k3d cluster 'cnap-dev'..."
         # Create k3d cluster with:
         # - Port mapping for services (8080:80)
-        # - Local registry on port 5000
+        # - Local registry on port 5001 (5000 is used by macOS AirPlay)
         # - API server port 6550
         k3d cluster create cnap-dev \
             --api-port 6550 \
             --servers 1 \
             --agents 1 \
             --port "8080:80@loadbalancer" \
-            --registry-create cnap-registry:0.0.0.0:5000 \
+            --registry-create cnap-registry:0.0.0.0:5001 \
             --wait
 
         echo "✅ k3d cluster created successfully"
@@ -109,7 +109,7 @@ echo ""
 echo "📊 Cluster info:"
 if [ "$MACHINE" = "Mac" ]; then
     echo "  - Cluster name: cnap-dev"
-    echo "  - Local registry: localhost:5000"
+    echo "  - Local registry: localhost:5001"
     echo "  - HTTP port: 8080 (mapped to LoadBalancer port 80)"
     echo ""
     echo "🔧 Useful k3d commands:"

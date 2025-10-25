@@ -17,26 +17,75 @@ echo "🔍 k3s Environment Verification"
 echo "================================"
 echo ""
 
-# Check 1: k3s binary
-log_info "Checking k3s installation..."
-if command -v k3s &> /dev/null; then
-    K3S_VERSION=$(k3s --version | head -n1)
-    log_success "k3s is installed: $K3S_VERSION"
-else
-    log_error "k3s is not installed"
-    log_info "Run: ./scripts/setup-k3s.sh"
-    exit 1
-fi
+# Detect OS
+OS="$(uname -s)"
+case "${OS}" in
+    Linux*)     MACHINE=Linux;;
+    Darwin*)    MACHINE=Mac;;
+    *)          MACHINE="UNKNOWN:${OS}"
+esac
 
-# Check 2: k3s service status
-log_info "Checking k3s service status..."
-if sudo systemctl is-active --quiet k3s 2>/dev/null; then
-    log_success "k3s service is running"
-elif pgrep -x "k3s" > /dev/null; then
-    log_success "k3s process is running"
+log_info "Detected OS: ${MACHINE}"
+echo ""
+
+if [ "$MACHINE" = "Mac" ]; then
+    # macOS with k3d checks
+
+    # Check 1: k3d binary
+    log_info "Checking k3d installation..."
+    if command -v k3d &> /dev/null; then
+        K3D_VERSION=$(k3d version | grep k3d | awk '{print $3}')
+        log_success "k3d is installed: $K3D_VERSION"
+    else
+        log_error "k3d is not installed"
+        log_info "Run: ./scripts/setup-k3s.sh"
+        exit 1
+    fi
+
+    # Check 2: k3d cluster status
+    log_info "Checking k3d cluster 'cnap-dev'..."
+    if k3d cluster list | grep -q "cnap-dev"; then
+        # Check if the cluster server container is running
+        if docker ps | grep -q "k3d-cnap-dev-server"; then
+            log_success "k3d cluster 'cnap-dev' is running"
+        else
+            log_error "k3d cluster 'cnap-dev' exists but is not running"
+            log_info "Start with: k3d cluster start cnap-dev"
+            exit 1
+        fi
+    else
+        log_error "k3d cluster 'cnap-dev' not found"
+        log_info "Create with: ./scripts/setup-k3s.sh"
+        exit 1
+    fi
+
+elif [ "$MACHINE" = "Linux" ]; then
+    # Linux with native k3s checks
+
+    # Check 1: k3s binary
+    log_info "Checking k3s installation..."
+    if command -v k3s &> /dev/null; then
+        K3S_VERSION=$(k3s --version | head -n1)
+        log_success "k3s is installed: $K3S_VERSION"
+    else
+        log_error "k3s is not installed"
+        log_info "Run: ./scripts/setup-k3s.sh"
+        exit 1
+    fi
+
+    # Check 2: k3s service status
+    log_info "Checking k3s service status..."
+    if sudo systemctl is-active --quiet k3s 2>/dev/null; then
+        log_success "k3s service is running"
+    elif pgrep -x "k3s" > /dev/null; then
+        log_success "k3s process is running"
+    else
+        log_error "k3s is not running"
+        log_info "Start with: sudo systemctl start k3s"
+        exit 1
+    fi
 else
-    log_error "k3s is not running"
-    log_info "Start with: sudo systemctl start k3s"
+    log_error "Unsupported OS: ${MACHINE}"
     exit 1
 fi
 
@@ -102,12 +151,20 @@ fi
 
 # Check 8: Local registry
 log_info "Checking local registry..."
-if docker ps | grep -q "registry:2"; then
-    REGISTRY_PORT=$(docker port registry 2>/dev/null | grep 5000 | cut -d: -f2)
-    log_success "Local registry is running on port ${REGISTRY_PORT:-5000}"
+if docker ps | grep -q "cnap-registry"; then
+    REGISTRY_PORT=$(docker port cnap-registry 2>/dev/null | grep 5000 | cut -d: -f2)
+    if [ "$MACHINE" = "Mac" ]; then
+        log_success "Local registry is running on port ${REGISTRY_PORT:-5001}"
+    else
+        log_success "Local registry is running on port ${REGISTRY_PORT:-5000}"
+    fi
 else
     log_warning "Local registry is not running"
-    log_info "Start with: docker run -d -p 5000:5000 --name registry registry:2"
+    if [ "$MACHINE" = "Mac" ]; then
+        log_info "Recreate cluster with: ./scripts/setup-k3s.sh"
+    else
+        log_info "Start with: docker run -d -p 5000:5000 --name cnap-registry registry:2"
+    fi
 fi
 
 # Check 9: System pods
