@@ -242,6 +242,7 @@ kubectl describe pod -n cnap-dev <pod-name>
 
 - [Quick Start Guide](docs/QUICKSTART.md) - 5분 안에 시작하기
 - [Development Guide](docs/DEVELOPMENT.md) - 상세 개발 가이드
+- [Testing Guide](docs/TESTING.md) - 로컬 테스트 환경 및 E2E 테스트
 - [Project Structure](docs/PROJECT_STRUCTURE.md) - 프로젝트 구조 설명
 - [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md) - 구현 계획 및 진행 상황
 
