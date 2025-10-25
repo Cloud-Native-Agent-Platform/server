@@ -11,7 +11,7 @@ patchesStrategicMerge:
 
 images:
   - name: cnap-server
-    newName: localhost:5000/cnap-server  # k3s local registry
+    newName: cnap-registry:5000/cnap-server  # k3d local registry
     newTag: dev
 
 commonLabels:
