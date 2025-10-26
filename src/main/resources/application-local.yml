@@ -16,11 +16,15 @@ management:
 
 cnap:
   kubernetes:
-    namespace: ${CNAP_K8S_NAMESPACE:cnap-dev}
+    namespace: cnap-dev
   stream:
-    mode: ${CNAP_STREAM_MODE:sse}
+    mode: sse
   auth:
-    token: ${CNAP_AUTH_TOKEN:local-dev-token}
+    token: local-dev-token
+  jwt:
+    secret: ThisIsAVeryLongSecretKeyForJWTTokenGenerationAndValidationMinimum256BitsRequired
+    access-token-expiration: 1800000
+    refresh-token-expiration: 2592000000
   cors:
     allowed-origins:
       - "*"
