@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: cnap-server-dev
+  datasource:
+    url: ${DB_URL}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      max-lifetime: 175000
+      maximum-pool-size: 10
+      minimum-idle: 5
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQLDialect
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+cnap:
+  kubernetes:
+    namespace: ${CNAP_K8S_NAMESPACE}
+  stream:
+    mode: ${CNAP_STREAM_MODE}
+  auth:
+    token: ${CNAP_AUTH_TOKEN}
+  jwt:
+    secret: ${CNAP_JWT_SECRET}
+    access-token-expiration: ${CNAP_JWT_ACCESS_TOKEN_EXPIRATION:1800000}
+    refresh-token-expiration: ${CNAP_JWT_REFRESH_TOKEN_EXPIRATION:2592000000}
+  cors:
+    allowed-origins:
+      - ${CNAP_CORS_ALLOWED_ORIGINS}
+    allowed-headers:
+      - "*"
+    allow-credentials: true
+    max-age: 3600
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+logging:
+  level:
+    root: INFO
+    com.cnap: INFO
