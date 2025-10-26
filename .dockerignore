@@ -1,0 +1,32 @@
+# Build artifacts
+.gradle/
+*.war
+# Allow JAR files in build/libs for Docker image
+!build/libs/*.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Version control
+.git/
+.gitignore
+
+# Kubernetes
+k8s/
+*.yaml
+*.yml
+
+# Documentation
+README.md
+docs/
+
+# CI/CD
+.github/
+
+# Misc
+*.log
+.DS_Store
