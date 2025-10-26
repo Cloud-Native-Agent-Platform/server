@@ -40,6 +40,10 @@ dependencies {
     // Kubernetes Client
     implementation("io.fabric8:kubernetes-client:6.10.0")
 
+    // Database
+    runtimeOnly("com.h2database:h2:2.3.232")
+    runtimeOnly("com.mysql:mysql-connector-j:9.1.0")
+
     // Logging
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 

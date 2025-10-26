@@ -31,10 +31,12 @@ class SecurityConfig(
                     "/version",
                     "/api-docs/**",
                     "/swagger-ui/**",
-                    "/swagger-ui.html"
+                    "/swagger-ui.html",
+                    "/h2-console/**"
                 ).permitAll()
                 .anyRequest().permitAll()
             }
+            .headers { it.frameOptions { frameOptions -> frameOptions.sameOrigin() } }
             .exceptionHandling { it.authenticationEntryPoint(jwtAuthenticationEntryPoint) }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
