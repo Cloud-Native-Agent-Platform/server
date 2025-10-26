@@ -5,6 +5,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.6"
     kotlin("jvm") version "2.0.20"
     kotlin("plugin.spring") version "2.0.20"
+    kotlin("plugin.jpa") version "2.0.20"
 }
 
 group = "com.cnap"
@@ -24,6 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
